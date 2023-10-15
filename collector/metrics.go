@@ -1,13 +1,16 @@
-package main
+package collector
 
 import (
-	"fmt"
-	"net/http"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"sync"
+	"time"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
-func main() {
-	fmt.Println("Starting ML Monitoring Agent on :8080")
-	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":8080", nil)
+type MetricsCollector struct {
+	mu            sync.Mutex
+	inferenceTime prometheus.Histogram
+	requestCount  prometheus.Counter
+	driftScore    prometheus.Gauge
+	errorRate     prometheus.Summary
 }
