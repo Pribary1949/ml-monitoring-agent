@@ -32,3 +32,20 @@ func NewMetricsCollector(namespace string) *MetricsCollector {
 			Namespace: namespace,
 			Name:      "model_drift_score",
 			Help:      "Current calculated drift score (0-1)",
+		}),
+		errorRate: promauto.NewSummary(prometheus.SummaryOpts{
+			Namespace: namespace,
+			Name:      "inference_errors",
+			Help:      "Summary of inference errors",
+		}),
+	}
+}
+
+func (c *MetricsCollector) RecordInference(duration time.Duration, success bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.requestCount.Inc()
+	c.inferenceTime.Observe(duration.Seconds())
+	if !success {
+		c.errorRate.Observe(1.0)
