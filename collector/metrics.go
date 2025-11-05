@@ -49,3 +49,21 @@ func (c *MetricsCollector) RecordInference(duration time.Duration, success bool)
 	c.inferenceTime.Observe(duration.Seconds())
 	if !success {
 		c.errorRate.Observe(1.0)
+	}
+}
+
+func (c *MetricsCollector) UpdateDrift(score float64) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.driftScore.Set(score)
+}
+
+func (c *MetricsCollector) StartSimulation() {
+	go func() {
+		for {
+			time.Sleep(2 * time.Second)
+			c.RecordInference(150*time.Millisecond, true)
+			c.UpdateDrift(0.05)
+		}
+	}()
+}
